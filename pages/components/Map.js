@@ -8,34 +8,150 @@ export const Map = ({ pickupCoordinates, dropoffCoordinates }) => {
     const mapRef = useRef(null);
 
     useEffect(() => {
+        // Initialize map with default center
         const map = new mapboxgl.Map({
             container: 'map',
             style: 'mapbox://styles/mapbox/streets-v11',
-            center: [-99.29011, 39.39172],
-            zoom: 3
+            center: [76.9366, 8.5241], // Default center (can be anywhere)
+            zoom: 11
         });
 
-        // Wait for map to load before adding markers and route
-        map.on('load', () => {
-            if (pickupCoordinates) {
-                addToMap(map, pickupCoordinates, 'pickup');
-            }
+        // Get user's location
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { longitude, latitude } = position.coords;
+                    
+                    // Add user's location marker
+                    new mapboxgl.Marker({
+                        color: "#3b82f6",
+                        scale: 0.8
+                    })
+                    .setLngLat([longitude, latitude])
+                    .addTo(map);
 
-            if (dropoffCoordinates) {
-                addToMap(map, dropoffCoordinates, 'dropoff');
-            }
+                    // Add a pulsing dot for current location
+                    const size = 200;
+                    const pulsingDot = {
+                        width: size,
+                        height: size,
+                        data: new Uint8Array(size * size * 4),
+                        
+                        onAdd: function() {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = this.width;
+                            canvas.height = this.height;
+                            this.context = canvas.getContext('2d');
+                        },
+                        
+                        render: function() {
+                            const duration = 1000;
+                            const t = (performance.now() % duration) / duration;
+                            
+                            const radius = (size / 2) * 0.3;
+                            const outerRadius = (size / 2) * 0.7 * t + radius;
+                            const context = this.context;
+                            
+                            context.clearRect(0, 0, this.width, this.height);
+                            context.beginPath();
+                            context.arc(
+                                this.width / 2,
+                                this.height / 2,
+                                outerRadius,
+                                0,
+                                Math.PI * 2
+                            );
+                            context.fillStyle = `rgba(59, 130, 246, ${1 - t})`;
+                            context.fill();
+                            
+                            context.beginPath();
+                            context.arc(
+                                this.width / 2,
+                                this.height / 2,
+                                radius,
+                                0,
+                                Math.PI * 2
+                            );
+                            context.fillStyle = 'rgba(59, 130, 246, 1)';
+                            context.strokeStyle = 'white';
+                            context.lineWidth = 2 + 4 * (1 - t);
+                            context.fill();
+                            context.stroke();
+                            
+                            this.data = context.getImageData(
+                                0,
+                                0,
+                                this.width,
+                                this.height
+                            ).data;
+                            
+                            map.triggerRepaint();
+                            return true;
+                        }
+                    };
 
-            if (pickupCoordinates && dropoffCoordinates) {
-                map.fitBounds([
-                    pickupCoordinates,
-                    dropoffCoordinates
-                ], {
-                    padding: 60
-                });
+                    // Wait for map to load before adding markers and route
+                    map.on('load', () => {
+                        // Add the pulsing dot source and layer
+                        map.addImage('pulsing-dot', pulsingDot, { pixelRatio: 2 });
+                        
+                        map.addSource('dot-point', {
+                            'type': 'geojson',
+                            'data': {
+                                'type': 'FeatureCollection',
+                                'features': [
+                                    {
+                                        'type': 'Feature',
+                                        'geometry': {
+                                            'type': 'Point',
+                                            'coordinates': [longitude, latitude]
+                                        }
+                                    }
+                                ]
+                            }
+                        });
+                        
+                        map.addLayer({
+                            'id': 'layer-with-pulsing-dot',
+                            'type': 'symbol',
+                            'source': 'dot-point',
+                            'layout': {
+                                'icon-image': 'pulsing-dot'
+                            }
+                        });
 
-                getRoute(map, pickupCoordinates, dropoffCoordinates);
-            }
-        });
+                        // Fly to user's location
+                        map.flyTo({
+                            center: [longitude, latitude],
+                            zoom: 14,
+                            essential: true
+                        });
+
+                        if (pickupCoordinates) {
+                            addToMap(map, pickupCoordinates, 'pickup');
+                        }
+
+                        if (dropoffCoordinates) {
+                            addToMap(map, dropoffCoordinates, 'dropoff');
+                        }
+
+                        if (pickupCoordinates && dropoffCoordinates) {
+                            map.fitBounds([
+                                pickupCoordinates,
+                                dropoffCoordinates
+                            ], {
+                                padding: 60
+                            });
+
+                            getRoute(map, pickupCoordinates, dropoffCoordinates);
+                        }
+                    });
+                },
+                (error) => {
+                    console.error("Error getting location:", error);
+                }
+            );
+        }
 
         // Cleanup function
         return () => map.remove();
@@ -60,7 +176,6 @@ export const Map = ({ pickupCoordinates, dropoffCoordinates }) => {
             const data = json.routes[0];
             const route = data.geometry.coordinates;
 
-            // Check if the route layer/source already exists
             if (map.getSource('route')) {
                 map.removeLayer('route');
                 map.removeSource('route');

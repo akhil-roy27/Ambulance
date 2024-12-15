@@ -1,10 +1,21 @@
 import { useState } from 'react';
 import tw from 'tailwind-styled-components'
 import Link from 'next/link';
+import AutocompleteInput from './components/AutocompleteInput';
 
 function Search() {
     const [pickup, setPickup] = useState('');
     const [dropoff, setDropoff] = useState('');
+    const [pickupCoordinates, setPickupCoordinates] = useState(null);
+    const [dropoffCoordinates, setDropoffCoordinates] = useState(null);
+
+    const handlePickupSelect = (suggestion) => {
+        setPickupCoordinates(suggestion.center);
+    };
+
+    const handleDropoffSelect = (suggestion) => {
+        setDropoffCoordinates(suggestion.center);
+    };
 
     return (
         <Wrapper>
@@ -25,15 +36,17 @@ function Search() {
                 </FromToIcons>
 
                 <InputBoxes>
-                    <Input
+                    <AutocompleteInput
                         placeholder='Enter pickup location'
                         value={pickup}
-                        onChange={e => setPickup(e.target.value)}
+                        onChange={setPickup}
+                        onSelect={handlePickupSelect}
                     />
-                    <Input
+                    <AutocompleteInput
                         placeholder='Where to?'
                         value={dropoff}
-                        onChange={e => setDropoff(e.target.value)}
+                        onChange={setDropoff}
+                        onSelect={handleDropoffSelect}
                     />
                 </InputBoxes>
 
@@ -52,13 +65,14 @@ function Search() {
                 query: {
                     pickup: pickup,
                     dropoff: dropoff,
+                    pickupCoordinates: JSON.stringify(pickupCoordinates),
+                    dropoffCoordinates: JSON.stringify(dropoffCoordinates),
                 }
             }}>
                 <ConfirmButtonContainer>
                     Confirm Locations
                 </ConfirmButtonContainer>
             </Link>
-
         </Wrapper>
     )
 };
