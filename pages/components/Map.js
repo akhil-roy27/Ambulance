@@ -2,30 +2,71 @@ import { useEffect, useState } from 'react';
 import tw from 'tailwind-styled-components'
 import mapboxgl from '!mapbox-gl';
 
-mapboxgl.accessToken = 'pk.eyJ1IjoiZ291dGhhbS0wOCIsImEiOiJjbTRweWJ2NTMwdnk0MnRxc3gwc284a2doIn0.wM2RRtMAJNPxfZI3odHnzA';
+mapboxgl.accessToken = 'pk.eyJ1IjoiZGV2bGlucm9jaGEiLCJhIjoiY2t2bG82eTk4NXFrcDJvcXBsemZzdnJoYSJ9.aq3RAvhuRww7R_7q-giWpA';
 
 export const Map = (props) => {
     const [userLocation, setUserLocation] = useState(null);
     const [map, setMap] = useState(null);
+    const [locationAccuracy, setLocationAccuracy] = useState(null);
 
-    // Get user's current location
+    // Get user's current location with enhanced accuracy
     useEffect(() => {
         if ("geolocation" in navigator) {
+            // First, try to get a quick initial position
             navigator.geolocation.getCurrentPosition(
                 (position) => {
-                    setUserLocation([
-                        position.coords.longitude,
-                        position.coords.latitude
-                    ]);
+                    updateLocation(position);
+                },
+                (error) => console.error("Initial position error:", error),
+                { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+            );
+
+            // Then start watching position for better accuracy
+            const watchId = navigator.geolocation.watchPosition(
+                (position) => {
+                    updateLocation(position);
                 },
                 (error) => {
-                    console.error("Error getting location:", error);
+                    console.error("Watch position error:", {
+                        code: error.code,
+                        message: error.message
+                    });
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0,
                 }
             );
+
+            // Cleanup watch on component unmount
+            return () => navigator.geolocation.clearWatch(watchId);
         } else {
             console.log("Geolocation is not supported by this browser.");
         }
     }, []);
+
+    const updateLocation = (position) => {
+        const longitude = position.coords.longitude;
+        const latitude = position.coords.latitude;
+        const accuracy = position.coords.accuracy;
+
+        // Only update if accuracy is better than previous reading
+        if (!locationAccuracy || accuracy < locationAccuracy) {
+            setLocationAccuracy(accuracy);
+            setUserLocation([longitude, latitude]);
+
+            console.log('Updated Location Details:', {
+                latitude,
+                longitude,
+                accuracy: accuracy.toFixed(2) + ' meters',
+                speed: position.coords.speed ? position.coords.speed + ' m/s' : 'unavailable',
+                altitude: position.coords.altitude ? position.coords.altitude + ' meters' : 'unavailable',
+                heading: position.coords.heading ? position.coords.heading + '°' : 'unavailable',
+                timestamp: new Date(position.timestamp).toLocaleString(),
+            });
+        }
+    };
 
     // Initialize map
     useEffect(() => {
@@ -36,46 +77,55 @@ export const Map = (props) => {
             zoom: 15,
         });
 
-        // Save map instance
         setMap(initializeMap);
 
-        // Add geolocate control to the map
+        // Add enhanced geolocate control
         const geolocate = new mapboxgl.GeolocateControl({
             positionOptions: {
-                enableHighAccuracy: true
+                enableHighAccuracy: true,
+                maximumAge: 0,
+                timeout: 7000
             },
             trackUserLocation: true,
-            showUserHeading: true
+            showUserHeading: true,
+            showAccuracyCircle: true
         });
+        
         initializeMap.addControl(geolocate);
 
-        // Clean up on unmount
+        // Trigger geolocate after map loads
+        initializeMap.on('load', () => {
+            geolocate.trigger();
+        });
+
         return () => initializeMap.remove();
-    }, []); // Only run once on mount
+    }, []);
 
     // Handle markers and bounds
     useEffect(() => {
-        if (!map) return; // Wait for map to initialize
+        if (!map || !userLocation) return;
 
-        // Clear existing markers (optional)
+        // Clear existing markers
         const markers = document.getElementsByClassName('mapboxgl-marker');
         while(markers.length > 0){
             markers[0].remove();
         }
 
-        // Add user location marker if available
+        // Add user location marker with accuracy circle
         if (userLocation) {
+            console.log('Setting marker for user location:', userLocation);
             new mapboxgl.Marker({
-                color: "#FF0000" // Red color for user location
+                color: "#FF0000",
+                scale: 0.8
             })
             .setLngLat(userLocation)
             .addTo(map);
 
-            // Center on user location if no pickup/dropoff
             if (!props.pickupCoordinates && !props.dropoffCoordinates) {
                 map.flyTo({
                     center: userLocation,
-                    zoom: 14
+                    zoom: 16,
+                    essential: true
                 });
             }
         }
@@ -109,6 +159,11 @@ export const Map = (props) => {
 
     return (
         <Wrapper id='map'>
+            {locationAccuracy && (
+                <AccuracyIndicator>
+                    Accuracy: {locationAccuracy.toFixed(2)}m
+                </AccuracyIndicator>
+            )}
         </Wrapper>
     )
 };
@@ -116,5 +171,9 @@ export const Map = (props) => {
 export default Map
 
 const Wrapper = tw.div`
-    flex-1 h-1/2
+    flex-1 h-1/2 relative
+`
+
+const AccuracyIndicator = tw.div`
+    absolute top-2 right-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded-md z-10 text-sm
 `
