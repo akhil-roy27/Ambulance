@@ -45,14 +45,14 @@ export default function Home() {
           <ActionButtons>
             <Link href='/search'>
               <ActionButton>
-                <ActionButtonImage src='https://i.ibb.co/cyvcpfF/uberx.png' />
-                <ActionButtonText>Ride</ActionButtonText>
+                <ActionButtonImage src='/ambulance.png' />
+                <ActionButtonText>Ambulance</ActionButtonText>
               </ActionButton>
             </Link>
 
             <ActionButton>
-              <ActionButtonImage src='https://i.ibb.co/n776JLm/bike.png' />
-              <ActionButtonText>Wheels</ActionButtonText>
+              <ActionButtonImage src='/clinic.png' />
+              <ActionButtonText>Clinics</ActionButtonText>
             </ActionButton>
 
             
@@ -72,7 +72,7 @@ const Container = tw.div`
 `
 
 const ActionItemsContainer = tw.div`
-  absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-xl z-10
+  absolute bottom-3 left-3 right-3 bg-white rounded-t-3xl shadow-xl z-10
 `
 
 const ActionItems = tw.div`
