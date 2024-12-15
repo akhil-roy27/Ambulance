@@ -9,7 +9,6 @@ import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { useRouter } from 'next/router';
 
 export default function Home() {
-
   const [user, setUser] = useState(null);
   const router = useRouter();
 
@@ -28,60 +27,56 @@ export default function Home() {
   }, []);
 
   return (
-    <Wrapper>
+    <Container>
       <Map />
-      <ActionItems >
-        <Header>
-
-          <UberLogo src='https://i.ibb.co/ZMhy8ws/uber-logo.png' />
-
-          <Profile>
-
-            <Name>{user && user.name}</Name>
-            <UserImage
-              src={user && user.photoUrl}
-              onClick={() => signOut(auth)}
-            />
-
-          </Profile>
-
-        </Header>
-        <ActionButtons>
-
-          <Link href='/search' >
-            <ActionButton>
-              <ActionButtonImage src='https://i.ibb.co/cyvcpfF/uberx.png' />
-              Ride
-            </ActionButton>
-          </Link>
-
-          <ActionButton>
-            <ActionButtonImage src='https://i.ibb.co/n776JLm/bike.png' />
-            Wheels
-          </ActionButton>
-
-          <ActionButton>
-            <ActionButtonImage src='https://i.ibb.co/5RjchBg/uberschedule.png' />
-            Reserve
-          </ActionButton>
+      <ActionItemsContainer>
+        <ActionItems>
+          <Header>
+            <UberLogo src='https://i.ibb.co/ZMhy8ws/uber-logo.png' />
+            <Profile>
+              <Name>{user && user.name}</Name>
+              <UserImage
+                src={user && user.photoUrl}
+                onClick={() => signOut(auth)}
+              />
+            </Profile>
+          </Header>
           
-        </ActionButtons>
+          <ActionButtons>
+            <Link href='/search'>
+              <ActionButton>
+                <ActionButtonImage src='https://i.ibb.co/cyvcpfF/uberx.png' />
+                Ride
+              </ActionButton>
+            </Link>
 
-        <InputButton>
-          Where to
-        </InputButton>
+            <ActionButton>
+              <ActionButtonImage src='https://i.ibb.co/n776JLm/bike.png' />
+              Wheels
+            </ActionButton>
 
-      </ActionItems>
-    </Wrapper>
+            
+          </ActionButtons>
+
+          <InputButton>
+            Where to
+          </InputButton>
+        </ActionItems>
+      </ActionItemsContainer>
+    </Container>
   )
 };
 
-const Wrapper = tw.div`
-  flex flex-col h-screen
+const Container = tw.div`
+  flex flex-col h-screen relative
+`
+
+const ActionItemsContainer = tw.div`
+  absolute bottom-3 left-3 right-3 bg-white rounded-t-3xl shadow-lg
 `
 
 const ActionItems = tw.div`
-  flex-1 p-4
+  p-4
 `
 
 const Header = tw.div`

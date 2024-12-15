@@ -72,7 +72,7 @@ export const Map = (props) => {
     useEffect(() => {
         const initializeMap = new mapboxgl.Map({
             container: 'map',
-            style: 'mapbox://styles/mapbox/navigation-night-v1',
+            style: 'mapbox://styles/mapbox/navigation-day-v1',
             center: userLocation || [76.5222, 9.5916],
             zoom: 15,
         });
