@@ -46,20 +46,20 @@ export default function Home() {
             <Link href='/search'>
               <ActionButton>
                 <ActionButtonImage src='https://i.ibb.co/cyvcpfF/uberx.png' />
-                Ride
+                <ActionButtonText>Ride</ActionButtonText>
               </ActionButton>
             </Link>
 
             <ActionButton>
               <ActionButtonImage src='https://i.ibb.co/n776JLm/bike.png' />
-              Wheels
+              <ActionButtonText>Wheels</ActionButtonText>
             </ActionButton>
 
             
           </ActionButtons>
 
           <InputButton>
-            Where to
+            <InputButtonText>Where to?</InputButtonText>
           </InputButton>
         </ActionItems>
       </ActionItemsContainer>
@@ -72,45 +72,56 @@ const Container = tw.div`
 `
 
 const ActionItemsContainer = tw.div`
-  absolute bottom-3 left-3 right-3 bg-white rounded-t-3xl shadow-lg
+  absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-xl z-10
 `
 
 const ActionItems = tw.div`
-  p-4
+  px-6 py-4
 `
 
 const Header = tw.div`
-  flex justify-between items-center
+  flex justify-between items-center mb-4
 `
 
 const UberLogo = tw.img`
-  h-28
+  h-20
 `
 
 const Profile = tw.div`
-  flex items-center
+  flex items-center bg-gray-50 px-4 py-2 rounded-full
 `
 
 const Name = tw.div`
-  mr-4 w-20 text-sm
+  mr-4 w-20 text-sm font-medium
 `
 
 const UserImage = tw.img`
-  h-12 w-12 rounded-full border border-gray-200 p-px object-cover cursor-pointer
+  h-12 w-12 rounded-full border border-gray-200 p-px object-cover cursor-pointer hover:border-gray-400 transition
 `
 
 const ActionButtons = tw.div`
-  flex
+  flex gap-3 mb-4
 `
 
 const ActionButton = tw.div`
-  flex flex-col flex-1 bg-gray-200 m-1 h-32 items-center justify-center rounded-lg transform hover:scale-105 transition text-xl
+  flex flex-col flex-1 bg-gray-50 py-4 items-center justify-center rounded-xl
+  transform hover:scale-105 transition duration-300 ease-in-out
+  cursor-pointer hover:bg-gray-100
 `
 
 const ActionButtonImage = tw.img`
-  h-3/5
+  h-3/5 mb-3
+`
+
+const ActionButtonText = tw.span`
+  font-medium text-lg
 `
 
 const InputButton = tw.div`
-  h-20 bg-gray-200 text-2xl p-4 flex items-center mt-8
+  h-16 bg-gray-50 rounded-full px-6 flex items-center cursor-pointer
+  hover:bg-gray-100 transition duration-300 ease-in-out
+`
+
+const InputButtonText = tw.span`
+  text-lg text-gray-600 font-medium
 `

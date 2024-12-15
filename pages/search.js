@@ -3,19 +3,21 @@ import tw from 'tailwind-styled-components'
 import Link from 'next/link';
 
 function Search() {
-
     const [pickup, setPickup] = useState('');
     const [dropoff, setDropoff] = useState('');
 
     return (
         <Wrapper>
-            <ButtonContainer>
+            {/* Header */}
+            <HeaderContainer>
                 <Link href='/' >
-                <BackButton src='https://img.icons8.com/ios-filled/50/000000/left.png' />
+                    <BackButton src='https://img.icons8.com/ios-filled/50/000000/left.png' />
                 </Link>
-            </ButtonContainer>
-            <InputContainer>
+                <HeaderText>Plan your ride</HeaderText>
+            </HeaderContainer>
 
+            {/* Main Input Section */}
+            <InputContainer>
                 <FromToIcons>
                     <Circle src='https://img.icons8.com/ios-filled/50/9CA3AF/filled-circle.png' />
                     <Line src='https://img.icons8.com/ios/50/9CA3AF/vertical-line.png' />
@@ -23,7 +25,6 @@ function Search() {
                 </FromToIcons>
 
                 <InputBoxes>
-
                     <Input
                         placeholder='Enter pickup location'
                         value={pickup}
@@ -34,16 +35,18 @@ function Search() {
                         value={dropoff}
                         onChange={e => setDropoff(e.target.value)}
                     />
-
                 </InputBoxes>
+
                 <PlusIcon src='https://img.icons8.com/ios/50/000000/plus-math.png' />
             </InputContainer>
 
+            {/* Saved Places */}
             <SavedPlaces>
-                <StartIcon src='https://img.icons8.com/ios-filled/50/ffffff/star--v1.png' />
-                Saved Images
+                <StarIcon src='https://img.icons8.com/ios-filled/50/ffffff/star--v1.png' />
+                <SavedPlacesText>Saved Places</SavedPlacesText>
             </SavedPlaces>
 
+            {/* Confirm Button */}
             <Link href={{
                 pathname: '/confirm',
                 query: {
@@ -51,9 +54,9 @@ function Search() {
                     dropoff: dropoff,
                 }
             }}>
-                <ConfirmContainer>
-                    <ConfirmButton>Confirm Locations</ConfirmButton>
-                </ConfirmContainer>
+                <ConfirmButtonContainer>
+                    Confirm Locations
+                </ConfirmButtonContainer>
             </Link>
 
         </Wrapper>
@@ -63,23 +66,27 @@ function Search() {
 export default Search;
 
 const Wrapper = tw.div`
-    bg-gray-200 h-screen
+    flex flex-col h-screen bg-gray-50
 `
 
-const ButtonContainer = tw.div`
-    bg-white px-4
+const HeaderContainer = tw.div`
+    flex items-center px-4 py-3 bg-white shadow-sm
+`
+
+const HeaderText = tw.div`
+    text-xl font-semibold flex-1 text-center
 `
 
 const BackButton = tw.img`
-    h-12 cursor-pointer
-`
-
-const FromToIcons = tw.div`
-    w-10 flex flex-col mr-2 items-center
+    h-10 cursor-pointer hover:opacity-70 transition
 `
 
 const InputContainer = tw.div`
-    bg-white flex items-center px-4 mb-2
+    bg-white flex items-center px-5 py-3 mb-2 mt-2 mx-4 shadow-sm rounded-lg
+`
+
+const FromToIcons = tw.div`
+    w-10 flex flex-col mr-3 items-center
 `
 
 const Circle = tw.img`
@@ -95,29 +102,34 @@ const Square = tw.img`
 `
 
 const InputBoxes = tw.div`
-    flex flex-col flex-1
+    flex flex-col flex-1 space-y-2
 `
 
 const Input = tw.input`
-    h-10 bg-gray-200 my-2 rounded-2 p-2 outline-none border-none ml-3
+    h-12 bg-gray-50 rounded-lg p-3 outline-none border border-gray-100 
+    focus:border-gray-300 transition duration-200 text-sm
 `
 
 const PlusIcon = tw.img`
-    w-10 h-10 bg-gray-200 rounded-full ml-3
+    w-10 h-10 bg-gray-100 rounded-full ml-3 p-2 cursor-pointer
+    hover:bg-gray-200 transition duration-200
 `
 
 const SavedPlaces = tw.div`
-    flex items-center bg-white px-4 py-2
+    flex items-center px-4 py-3 bg-white mx-4 mt-2 rounded-lg shadow-sm
+    cursor-pointer hover:bg-gray-50 transition duration-200
 `
 
-const StartIcon = tw.img`
-    bg-gray-400 w-10 h-10 p-2 rounded-full mr-2
+const StarIcon = tw.img`
+    bg-gray-400 w-10 h-10 p-2 rounded-full mr-3
 `
 
-const ConfirmContainer = tw.div`
-    bg-black text-white text-center mt-2 mx-4 px-4 py-3 text-2xl cursor-pointer
+const SavedPlacesText = tw.div`
+    text-base font-medium
 `
 
-const ConfirmButton = tw.div`
-    text-white
+const ConfirmButtonContainer = tw.div`
+    bg-black text-white mx-4 mt-4 px-4 py-3 text-center text-lg font-medium 
+    rounded-lg cursor-pointer hover:bg-gray-900 transition duration-200
+    shadow-md
 `

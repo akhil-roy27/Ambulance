@@ -1,179 +1,109 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import tw from 'tailwind-styled-components'
-import mapboxgl from '!mapbox-gl';
+import mapboxgl from 'mapbox-gl';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiZGV2bGlucm9jaGEiLCJhIjoiY2t2bG82eTk4NXFrcDJvcXBsemZzdnJoYSJ9.aq3RAvhuRww7R_7q-giWpA';
 
-export const Map = (props) => {
-    const [userLocation, setUserLocation] = useState(null);
-    const [map, setMap] = useState(null);
-    const [locationAccuracy, setLocationAccuracy] = useState(null);
+export const Map = ({ pickupCoordinates, dropoffCoordinates }) => {
+    const mapRef = useRef(null);
 
-    // Get user's current location with enhanced accuracy
     useEffect(() => {
-        if ("geolocation" in navigator) {
-            // First, try to get a quick initial position
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    updateLocation(position);
-                },
-                (error) => console.error("Initial position error:", error),
-                { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-            );
-
-            // Then start watching position for better accuracy
-            const watchId = navigator.geolocation.watchPosition(
-                (position) => {
-                    updateLocation(position);
-                },
-                (error) => {
-                    console.error("Watch position error:", {
-                        code: error.code,
-                        message: error.message
-                    });
-                },
-                {
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 0,
-                }
-            );
-
-            // Cleanup watch on component unmount
-            return () => navigator.geolocation.clearWatch(watchId);
-        } else {
-            console.log("Geolocation is not supported by this browser.");
-        }
-    }, []);
-
-    const updateLocation = (position) => {
-        const longitude = position.coords.longitude;
-        const latitude = position.coords.latitude;
-        const accuracy = position.coords.accuracy;
-
-        // Only update if accuracy is better than previous reading
-        if (!locationAccuracy || accuracy < locationAccuracy) {
-            setLocationAccuracy(accuracy);
-            setUserLocation([longitude, latitude]);
-
-            console.log('Updated Location Details:', {
-                latitude,
-                longitude,
-                accuracy: accuracy.toFixed(2) + ' meters',
-                speed: position.coords.speed ? position.coords.speed + ' m/s' : 'unavailable',
-                altitude: position.coords.altitude ? position.coords.altitude + ' meters' : 'unavailable',
-                heading: position.coords.heading ? position.coords.heading + '°' : 'unavailable',
-                timestamp: new Date(position.timestamp).toLocaleString(),
-            });
-        }
-    };
-
-    // Initialize map
-    useEffect(() => {
-        const initializeMap = new mapboxgl.Map({
+        const map = new mapboxgl.Map({
             container: 'map',
-            style: 'mapbox://styles/mapbox/navigation-day-v1',
-            center: userLocation || [76.5222, 9.5916],
-            zoom: 15,
+            style: 'mapbox://styles/mapbox/streets-v11',
+            center: [-99.29011, 39.39172],
+            zoom: 3
         });
 
-        setMap(initializeMap);
-
-        // Add enhanced geolocate control
-        const geolocate = new mapboxgl.GeolocateControl({
-            positionOptions: {
-                enableHighAccuracy: true,
-                maximumAge: 0,
-                timeout: 7000
-            },
-            trackUserLocation: true,
-            showUserHeading: true,
-            showAccuracyCircle: true
-        });
-        
-        initializeMap.addControl(geolocate);
-
-        // Trigger geolocate after map loads
-        initializeMap.on('load', () => {
-            geolocate.trigger();
-        });
-
-        return () => initializeMap.remove();
-    }, []);
-
-    // Handle markers and bounds
-    useEffect(() => {
-        if (!map || !userLocation) return;
-
-        // Clear existing markers
-        const markers = document.getElementsByClassName('mapboxgl-marker');
-        while(markers.length > 0){
-            markers[0].remove();
-        }
-
-        // Add user location marker with accuracy circle
-        if (userLocation) {
-            console.log('Setting marker for user location:', userLocation);
-            new mapboxgl.Marker({
-                color: "#FF0000",
-                scale: 0.8
-            })
-            .setLngLat(userLocation)
-            .addTo(map);
-
-            if (!props.pickupCoordinates && !props.dropoffCoordinates) {
-                map.flyTo({
-                    center: userLocation,
-                    zoom: 16,
-                    essential: true
-                });
+        // Wait for map to load before adding markers and route
+        map.on('load', () => {
+            if (pickupCoordinates) {
+                addToMap(map, pickupCoordinates, 'pickup');
             }
-        }
 
-        if (props.pickupCoordinates) {
-            addToMap(map, props.pickupCoordinates);
-        }
+            if (dropoffCoordinates) {
+                addToMap(map, dropoffCoordinates, 'dropoff');
+            }
 
-        if (props.dropoffCoordinates) {
-            addToMap(map, props.dropoffCoordinates);
-        }
+            if (pickupCoordinates && dropoffCoordinates) {
+                map.fitBounds([
+                    pickupCoordinates,
+                    dropoffCoordinates
+                ], {
+                    padding: 60
+                });
 
-        if (props.pickupCoordinates && props.dropoffCoordinates) {
-            map.fitBounds([
-                props.pickupCoordinates,
-                props.dropoffCoordinates
-            ], {
-                padding: 60
-            });
-        }
+                getRoute(map, pickupCoordinates, dropoffCoordinates);
+            }
+        });
 
-    }, [map, userLocation, props.pickupCoordinates, props.dropoffCoordinates]);
+        // Cleanup function
+        return () => map.remove();
 
-    const addToMap = (map, coordinates) => {
-        new mapboxgl.Marker({
-            color: "#ffffff"
+    }, [pickupCoordinates, dropoffCoordinates]);
+
+    const addToMap = (map, coordinates, type) => {
+        const marker = new mapboxgl.Marker({
+            color: type === 'pickup' ? '#00ff00' : '#ff0000'
         })
-        .setLngLat(coordinates)
-        .addTo(map);
-    };
+            .setLngLat(coordinates)
+            .addTo(map);
+    }
+
+    const getRoute = async (map, start, end) => {
+        try {
+            const query = await fetch(
+                `https://api.mapbox.com/directions/v5/mapbox/driving/${start[0]},${start[1]};${end[0]},${end[1]}?geometries=geojson&access_token=${mapboxgl.accessToken}`,
+                { method: 'GET' }
+            );
+            const json = await query.json();
+            const data = json.routes[0];
+            const route = data.geometry.coordinates;
+
+            // Check if the route layer/source already exists
+            if (map.getSource('route')) {
+                map.removeLayer('route');
+                map.removeSource('route');
+            }
+
+            map.addSource('route', {
+                'type': 'geojson',
+                'data': {
+                    'type': 'Feature',
+                    'properties': {},
+                    'geometry': {
+                        'type': 'LineString',
+                        'coordinates': route
+                    }
+                }
+            });
+
+            map.addLayer({
+                'id': 'route',
+                'type': 'line',
+                'source': 'route',
+                'layout': {
+                    'line-join': 'round',
+                    'line-cap': 'round'
+                },
+                'paint': {
+                    'line-color': '#3b82f6',
+                    'line-width': 4,
+                    'line-opacity': 0.75
+                }
+            });
+        } catch (error) {
+            console.error("Error fetching route:", error);
+        }
+    }
 
     return (
-        <Wrapper id='map'>
-            {locationAccuracy && (
-                <AccuracyIndicator>
-                    Accuracy: {locationAccuracy.toFixed(2)}m
-                </AccuracyIndicator>
-            )}
-        </Wrapper>
+        <Wrapper id='map' ref={mapRef} />
     )
-};
+}
 
 export default Map
 
 const Wrapper = tw.div`
-    flex-1 h-1/2 relative
-`
-
-const AccuracyIndicator = tw.div`
-    absolute top-2 right-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded-md z-10 text-sm
+    flex-1 h-1/2
 `
