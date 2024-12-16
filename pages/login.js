@@ -33,7 +33,7 @@ const ContentOverlay = tw.div`
 
 const FormSection = tw.div`
     flex-1 w-full px-6 py-8
-    md:w-1/2 md:flex md:items-center
+    md:w-1/2 md:flex md:items-center md:justify-center
     ${p => p.$isDark ? 'bg-black text-white' : 'bg-white text-gray-900'}
 `;
 
@@ -205,7 +205,7 @@ function Login() {
                 {isDark ? (
                     <img src="moon.svg" alt="Dark mode" className="w-5 h-5" />
                 ) : (
-                    <img src="/icons/sun.svg" alt="Light mode" className="w-5 h-5" />
+                    <img src="/sun.svg" alt="Light mode" className="w-5 h-5" />
                 )}
             </ThemeToggle>
             <TopSection>
