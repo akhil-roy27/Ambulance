@@ -4,164 +4,16 @@ import { signInWithPopup, onAuthStateChanged } from 'firebase/auth';
 import { auth, provider } from '../firebase';
 import tw from 'tailwind-styled-components';
 
-function Login() {
-    const router = useRouter();
-    const [currentImageIndex, setCurrentImageIndex] = useState(0);
-    const [isLoaded, setIsLoaded] = useState(false);
-    const [isDark, setIsDark] = useState(false);
-
-    const backgroundImages = [
-        "/images/1.jpg",
-        
-        "/images/3.jpg",
-        
-    ];
-
-    useEffect(() => {
-        // Auth state listener
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            if (user) {
-                router.push('/');
-            }
-        });
-
-        // Theme initialization
-        const savedTheme = localStorage.getItem("theme");
-        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-        setIsDark(savedTheme === "dark" || (!savedTheme && prefersDark));
-        
-        // Loading state
-        setTimeout(() => setIsLoaded(true), 100);
-
-        // Image rotation
-        const interval = setInterval(() => {
-            setCurrentImageIndex((prev) => (prev + 1) % backgroundImages.length);
-        }, 5000);
-
-        // Cleanup
-        return () => {
-            clearInterval(interval);
-            unsubscribe();
-        };
-    }, [router]);
-
-    const handleGoogleSignIn = async () => {
-        try {
-            await signInWithPopup(auth, provider);
-            // Router will handle redirect via onAuthStateChanged
-        } catch (error) {
-            console.error("Error signing in with Google:", error);
-        }
-    };
-
-    const toggleTheme = () => {
-        setIsDark(!isDark);
-        localStorage.setItem("theme", !isDark ? "dark" : "light");
-    };
-
-    if (!isLoaded) {
-        return <div className="min-h-screen w-full bg-black"></div>;
-    }
-
-    return (
-        <MainContainer>
-            {/* Left Section */}
-            <LeftSection>
-                <BackgroundContainer>
-                    {backgroundImages.map((image, i) => (
-                        <BackgroundImage 
-                            key={i}
-                            style={{
-                                opacity: currentImageIndex === i ? 1 : 0,
-                                backgroundImage: `url(${image})`
-                            }}
-                        />
-                    ))}
-                </BackgroundContainer>
-                <ContentOverlay>
-                    <MainTitle>
-                        AI to make your day a little less stressful
-                    </MainTitle>
-                    <SubTitle>
-                        We are your digital housekeepers
-                    </SubTitle>
-                </ContentOverlay>
-            </LeftSection>
-
-            {/* Right Section */}
-            <RightSection>
-                <FormContainer>
-                    <LoginTitle>
-                        Login to BioSync
-                    </LoginTitle>
-                    <SubLoginText>
-                        You can login or sign up here with multiple different client options
-                    </SubLoginText>
-                    <ButtonsContainer>
-                        <GoogleButton onClick={handleGoogleSignIn}>
-                            <img src="/google.svg" alt="Google" className="w-5 h-5 mr-2 dark:invert" />
-                            Login with Google
-                        </GoogleButton>
-                        
-                        <Divider>
-                            <DividerText>Or continue with</DividerText>
-                        </Divider>
-
-                        <EmailForm>
-                            <InputGroup>
-                                <Label htmlFor="email">Email</Label>
-                                <Input 
-                                    type="email" 
-                                    id="email" 
-                                    placeholder="Enter your email"
-                                />
-                            </InputGroup>
-
-                            <InputGroup>
-                                <Label htmlFor="password">Password</Label>
-                                <Input 
-                                    type="password" 
-                                    id="password" 
-                                    placeholder="Enter your password"
-                                />
-                            </InputGroup>
-
-                            <LoginButton type="submit">
-                                Login
-                            </LoginButton>
-                        </EmailForm>
-
-                        <SignupText>
-                            Don't have an account?{" "}
-                            <SignupLink onClick={() => router.push('/signup')}>
-                                Sign up
-                            </SignupLink>
-                        </SignupText>
-                    </ButtonsContainer>
-                </FormContainer>
-            </RightSection>
-
-            {/* Theme Toggle */}
-            <ThemeToggle onClick={toggleTheme}>
-                {isDark ? (
-                    <img src="moon.svg" alt="Dark mode" className="w-5 h-5" />
-                ) : (
-                    <img src="/icons/sun.svg" alt="Light mode" className="w-5 h-5" />
-                )}
-            </ThemeToggle>
-        </MainContainer>
-    );
-}
-
-export default Login;
-
-// Styled Components
+// First, define all styled components
 const MainContainer = tw.div`
-    min-h-screen w-full relative overflow-hidden
+    min-h-screen w-full
+    flex flex-col md:flex-row
+    ${p => p.$isDark ? 'bg-black' : 'bg-white'}
 `;
 
-const LeftSection = tw.div`
-    relative w-full lg:w-1/2 h-screen
+const TopSection = tw.div`
+    relative w-full 
+    h-[45vh] md:h-screen md:w-1/2
 `;
 
 const BackgroundContainer = tw.div`
@@ -176,6 +28,17 @@ const BackgroundImage = tw.div`
 const ContentOverlay = tw.div`
     relative z-10 flex flex-col justify-center items-center h-full p-8
     bg-gradient-to-b from-transparent to-black/60
+    md:bg-gradient-to-r md:from-transparent md:to-black/60
+`;
+
+const FormSection = tw.div`
+    flex-1 w-full px-6 py-8
+    md:w-1/2 md:flex md:items-center
+    ${p => p.$isDark ? 'bg-black text-white' : 'bg-white text-gray-900'}
+`;
+
+const LeftSection = tw.div`
+    relative w-full lg:w-1/2 h-screen
 `;
 
 const MainTitle = tw.h1`
@@ -276,3 +139,149 @@ const ThemeToggle = tw.button`
     dark:border-gray-900 text-gray-900
     dark:text-white shadow-lg
 `;
+
+function Login() {
+    const router = useRouter();
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [isLoaded, setIsLoaded] = useState(false);
+    const [isDark, setIsDark] = useState(true);
+
+    const backgroundImages = [
+        "/images/1.jpg",
+        
+        "/images/3.jpg",
+        
+    ];
+
+    useEffect(() => {
+        // Auth state listener
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                router.push('/');
+            }
+        });
+
+        // Theme initialization
+        const savedTheme = localStorage.getItem("theme");
+        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        setIsDark(savedTheme === "dark" || (!savedTheme && prefersDark));
+        
+        // Loading state
+        setTimeout(() => setIsLoaded(true), 100);
+
+        // Image rotation
+        const interval = setInterval(() => {
+            setCurrentImageIndex((prev) => (prev + 1) % backgroundImages.length);
+        }, 5000);
+
+        // Cleanup
+        return () => {
+            clearInterval(interval);
+            unsubscribe();
+        };
+    }, [router]);
+
+    const handleGoogleSignIn = async () => {
+        try {
+            await signInWithPopup(auth, provider);
+            // Router will handle redirect via onAuthStateChanged
+        } catch (error) {
+            console.error("Error signing in with Google:", error);
+        }
+    };
+
+    const toggleTheme = () => {
+        setIsDark(!isDark);
+        localStorage.setItem("theme", !isDark ? "dark" : "light");
+    };
+
+    if (!isLoaded) {
+        return <div className="min-h-screen w-full bg-black"></div>;
+    }
+
+    return (
+        <MainContainer $isDark={isDark}>
+            <ThemeToggle onClick={toggleTheme} $isDark={isDark}>
+                {isDark ? (
+                    <img src="moon.svg" alt="Dark mode" className="w-5 h-5" />
+                ) : (
+                    <img src="/icons/sun.svg" alt="Light mode" className="w-5 h-5" />
+                )}
+            </ThemeToggle>
+            <TopSection>
+                <BackgroundContainer>
+                    {backgroundImages.map((image, i) => (
+                        <BackgroundImage 
+                            key={i}
+                            style={{
+                                opacity: currentImageIndex === i ? 1 : 0,
+                                backgroundImage: `url(${image})`
+                            }}
+                        />
+                    ))}
+                </BackgroundContainer>
+                <ContentOverlay>
+                    <MainTitle>
+                        AI to make your day a little less stressful
+                    </MainTitle>
+                    <SubTitle>
+                        We are your digital housekeepers
+                    </SubTitle>
+                </ContentOverlay>
+            </TopSection>
+            <FormSection $isDark={isDark}>
+                <FormContainer>
+                    <LoginTitle>
+                        Login to BioSync
+                    </LoginTitle>
+                    <SubLoginText>
+                        You can login or sign up here with multiple different client options
+                    </SubLoginText>
+                    <ButtonsContainer>
+                        <GoogleButton onClick={handleGoogleSignIn}>
+                            <img src="/google.svg" alt="Google" className="w-5 h-5 mr-2 dark:invert" />
+                            Login with Google
+                        </GoogleButton>
+                        
+                        <Divider>
+                            <DividerText>Or continue with</DividerText>
+                        </Divider>
+
+                        <EmailForm>
+                            <InputGroup>
+                                <Label htmlFor="email">Email</Label>
+                                <Input 
+                                    type="email" 
+                                    id="email" 
+                                    placeholder="Enter your email"
+                                />
+                            </InputGroup>
+
+                            <InputGroup>
+                                <Label htmlFor="password">Password</Label>
+                                <Input 
+                                    type="password" 
+                                    id="password" 
+                                    placeholder="Enter your password"
+                                />
+                            </InputGroup>
+
+                            <LoginButton type="submit">
+                                Login
+                            </LoginButton>
+                        </EmailForm>
+
+                        <SignupText>
+                            Don't have an account?{" "}
+                            <SignupLink onClick={() => router.push('/signup')}>
+                                Sign up
+                            </SignupLink>
+                        </SignupText>
+                    </ButtonsContainer>
+                </FormContainer>
+            </FormSection>
+        </MainContainer>
+    );
+}
+
+export default Login;
