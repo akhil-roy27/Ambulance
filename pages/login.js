@@ -235,7 +235,7 @@ function Login() {
                         </EmailForm>
 
                         <SignupText>
-                            Don't have an account?{" "}
+                            Don&apos;t have an account?{" "}
                             <SignupLink onClick={() => router.push('/signup')}>
                                 Sign up
                             </SignupLink>

@@ -32,7 +32,7 @@ export default function Home() {
       <ActionItemsContainer>
         <ActionItems>
           <Header>
-            <UberLogo src='https://i.ibb.co/ZMhy8ws/uber-logo.png' />
+            <UberLogo src='/icoon.png' />
             <Profile>
               <Name>{user && user.name}</Name>
               <UserImage
