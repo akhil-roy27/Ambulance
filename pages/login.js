@@ -4,16 +4,16 @@ import { signInWithPopup, onAuthStateChanged } from 'firebase/auth';
 import { auth, provider } from '../firebase';
 import tw from 'tailwind-styled-components';
 
-// First, define all styled components
+// Styled components without dark mode
 const MainContainer = tw.div`
     min-h-screen w-full
     flex flex-col md:flex-row
-    ${p => p.$isDark ? 'bg-black' : 'bg-white'}
+    bg-white
 `;
 
 const TopSection = tw.div`
     relative w-full 
-    h-[45vh] md:h-screen md:w-1/2
+    h-[50vh] md:h-screen md:w-1/2
 `;
 
 const BackgroundContainer = tw.div`
@@ -32,13 +32,10 @@ const ContentOverlay = tw.div`
 `;
 
 const FormSection = tw.div`
-    flex-1 w-full px-6 py-8
-    md:w-1/2 md:flex md:items-center md:justify-center
-    ${p => p.$isDark ? 'bg-black text-white' : 'bg-white text-gray-900'}
-`;
-
-const LeftSection = tw.div`
-    relative w-full lg:w-1/2 h-screen
+    flex-1 w-full
+    flex items-center justify-center
+    md:w-1/2
+    bg-white text-gray-900
 `;
 
 const MainTitle = tw.h1`
@@ -49,23 +46,18 @@ const SubTitle = tw.p`
     text-xl text-custom-cyan text-center
 `;
 
-const RightSection = tw.div`
-    absolute top-0 right-0 w-full lg:w-1/2 h-screen
-    bg-white dark:bg-[#0E0E0C]
-    flex items-center justify-center p-8
-`;
-
 const FormContainer = tw.div`
     w-full max-w-md space-y-6
+    px-6
 `;
 
 const LoginTitle = tw.h2`
     text-2xl font-semibold text-center
-    text-gray-900 dark:text-white
+    text-gray-900
 `;
 
 const SubLoginText = tw.p`
-    text-sm text-center text-gray-600 dark:text-gray-400 mt-2
+    text-sm text-center text-gray-600 mt-2
 `;
 
 const ButtonsContainer = tw.div`
@@ -76,9 +68,7 @@ const GoogleButton = tw.button`
     w-full flex items-center justify-center gap-3
     bg-white hover:bg-gray-50 text-gray-700
     p-3 rounded-lg transition-all duration-300
-    shadow-sm dark:bg-[#0E0E0C] dark:border
-    dark:border-gray-600 dark:hover:bg-gray-700
-    dark:text-white
+    shadow-sm
 `;
 
 const Divider = tw.div`
@@ -87,7 +77,7 @@ const Divider = tw.div`
 `;
 
 const DividerText = tw.span`
-    px-2 bg-white dark:bg-[#0E0E0C]
+    px-2 bg-white
     text-gray-500 text-sm
 `;
 
@@ -101,56 +91,42 @@ const InputGroup = tw.div`
 
 const Label = tw.label`
     block text-sm font-medium
-    text-gray-700 dark:text-gray-300
+    text-gray-700
 `;
 
 const Input = tw.input`
-    w-full px-3 py-2 bg-white
-    border border-gray-300 rounded-lg
+    w-full px-3 py-2
+    bg-white border-gray-300 text-gray-900
+    border rounded-lg
     shadow-sm focus:outline-none focus:ring-2
     focus:ring-gray-400 focus:border-transparent
     transition-all duration-200
-    dark:bg-[#0E0E0C] dark:border-gray-600
-    dark:text-white dark:focus:ring-gray-500
 `;
 
 const LoginButton = tw.button`
     w-full py-2 px-4 rounded-lg
     text-white bg-black hover:bg-gray-800
     transition-colors duration-300
-    dark:bg-white dark:text-black
-    dark:hover:bg-gray-200
 `;
 
 const SignupText = tw.p`
     text-sm text-center
-    text-gray-600 dark:text-gray-400
+    text-gray-600
 `;
 
 const SignupLink = tw.button`
-    text-black dark:text-white
+    text-black
     hover:underline font-medium
-`;
-
-const ThemeToggle = tw.button`
-    absolute top-4 right-4 z-50
-    p-2 rounded-lg bg-gray-100
-    dark:bg-[#0E0E0C] dark:border
-    dark:border-gray-900 text-gray-900
-    dark:text-white shadow-lg
 `;
 
 function Login() {
     const router = useRouter();
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [isLoaded, setIsLoaded] = useState(false);
-    const [isDark, setIsDark] = useState(true);
 
     const backgroundImages = [
         "/images/1.jpg",
-        
         "/images/3.jpg",
-        
     ];
 
     useEffect(() => {
@@ -160,11 +136,6 @@ function Login() {
                 router.push('/');
             }
         });
-
-        // Theme initialization
-        const savedTheme = localStorage.getItem("theme");
-        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-        setIsDark(savedTheme === "dark" || (!savedTheme && prefersDark));
         
         // Loading state
         setTimeout(() => setIsLoaded(true), 100);
@@ -190,24 +161,12 @@ function Login() {
         }
     };
 
-    const toggleTheme = () => {
-        setIsDark(!isDark);
-        localStorage.setItem("theme", !isDark ? "dark" : "light");
-    };
-
     if (!isLoaded) {
-        return <div className="min-h-screen w-full bg-black"></div>;
+        return <div className="min-h-screen w-full bg-white"></div>;
     }
 
     return (
-        <MainContainer $isDark={isDark}>
-            <ThemeToggle onClick={toggleTheme} $isDark={isDark}>
-                {isDark ? (
-                    <img src="moon.svg" alt="Dark mode" className="w-5 h-5" />
-                ) : (
-                    <img src="/sun.svg" alt="Light mode" className="w-5 h-5" />
-                )}
-            </ThemeToggle>
+        <MainContainer>
             <TopSection>
                 <BackgroundContainer>
                     {backgroundImages.map((image, i) => (
@@ -229,17 +188,21 @@ function Login() {
                     </SubTitle>
                 </ContentOverlay>
             </TopSection>
-            <FormSection $isDark={isDark}>
+            <FormSection>
                 <FormContainer>
                     <LoginTitle>
-                        Login to BioSync
+                        <img 
+                            src="/icoon.png" 
+                            alt="BioSync Logo" 
+                            className="h-12 w-auto mx-auto"
+                        />
                     </LoginTitle>
                     <SubLoginText>
                         You can login or sign up here with multiple different client options
                     </SubLoginText>
                     <ButtonsContainer>
                         <GoogleButton onClick={handleGoogleSignIn}>
-                            <img src="/google.svg" alt="Google" className="w-5 h-5 mr-2 dark:invert" />
+                            <img src="/google.svg" alt="Google" className="w-5 h-5 mr-2" />
                             Login with Google
                         </GoogleButton>
                         
