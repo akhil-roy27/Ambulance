@@ -2,9 +2,9 @@
   "name": "uber-clone",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3001",
-    "build": "next build",
-    "start": "next start",
+    "dev": "SET NODE_OPTIONS=--openssl-legacy-provider && next dev",
+    "build": "SET NODE_OPTIONS=--openssl-legacy-provider && next build",
+    "start": "SET NODE_OPTIONS=--openssl-legacy-provider && next start",
     "lint": "next lint"
   },
   "dependencies": {
@@ -21,5 +21,8 @@
     "postcss": "^8.3.11",
     "tailwind-styled-components": "^2.0.3",
     "tailwindcss": "^2.2.19"
+  },
+  "engines": {
+    "node": "16.x"
   }
 }
