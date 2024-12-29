@@ -52,7 +52,7 @@ function RideSelector({pickupCoordinates, dropoffCoordinates}) {
                             <Time>5 min away</Time>
                         </CarDetails>
                         <PriceGroup>
-                            <Price>${((rideDistance * car.multiplier) + 5).toFixed(2)}</Price>
+                            <Price>₹{(((rideDistance * car.multiplier) + 5) * 83).toFixed(0)}</Price>
                             <PriceDetails>Base + distance</PriceDetails>
                         </PriceGroup>
                     </Car>
@@ -118,7 +118,7 @@ const PriceGroup = tw.div`
 `
 
 const Price = tw.div`
-    text-lg font-medium
+    text-lg font-medium font-mono
 `
 
 const PriceDetails = tw.div`
