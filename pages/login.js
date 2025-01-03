@@ -1,10 +1,11 @@
+import React from 'react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { signInWithPopup, onAuthStateChanged } from 'firebase/auth';
 import { auth, provider } from '../firebase';
 import tw from 'tailwind-styled-components';
 
-// Styled components without dark mode
+// Add these styled component definitions
 const MainContainer = tw.div`
     min-h-screen w-full
     flex flex-col md:flex-row
@@ -119,132 +120,89 @@ const SignupLink = tw.button`
     hover:underline font-medium
 `;
 
-function Login() {
+const DriverLogin = () => {
     const router = useRouter();
-    const [currentImageIndex, setCurrentImageIndex] = useState(0);
-    const [isLoaded, setIsLoaded] = useState(false);
 
-    const backgroundImages = [
-        "/images/1.jpg",
-        "/images/3.jpg",
-    ];
-
-    useEffect(() => {
-        // Auth state listener
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            if (user) {
-                router.push('/');
-            }
-        });
-        
-        // Loading state
-        setTimeout(() => setIsLoaded(true), 100);
-
-        // Image rotation
-        const interval = setInterval(() => {
-            setCurrentImageIndex((prev) => (prev + 1) % backgroundImages.length);
-        }, 5000);
-
-        // Cleanup
-        return () => {
-            clearInterval(interval);
-            unsubscribe();
-        };
-    }, [router]);
-
-    const handleGoogleSignIn = async () => {
+    const signInWithGoogle = async () => {
         try {
-            await signInWithPopup(auth, provider);
-            // Router will handle redirect via onAuthStateChanged
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
+            
+            // Store user data
+            localStorage.setItem('userName', user.displayName);
+            localStorage.setItem('userEmail', user.email);
+            localStorage.setItem('userPhoto', user.photoURL);
+            localStorage.setItem('userId', user.uid);
+            
+            // Redirect to home page after successful login
+            router.push('/');
         } catch (error) {
-            console.error("Error signing in with Google:", error);
+            console.error('Error details:', error); // Add detailed error logging
+            alert('Failed to sign in with Google. Please try again.');
         }
     };
-
-    if (!isLoaded) {
-        return <div className="min-h-screen w-full bg-white"></div>;
-    }
 
     return (
         <MainContainer>
             <TopSection>
                 <BackgroundContainer>
-                    {backgroundImages.map((image, i) => (
-                        <BackgroundImage 
-                            key={i}
-                            style={{
-                                opacity: currentImageIndex === i ? 1 : 0,
-                                backgroundImage: `url(${image})`
-                            }}
-                        />
-                    ))}
+                    <BackgroundImage style={{ backgroundImage: "url('/path-to-your-background-image.jpg')" }} />
                 </BackgroundContainer>
                 <ContentOverlay>
-                    <MainTitle>
-                        AI to make your day a little less stressful
-                    </MainTitle>
-                    <SubTitle>
-                        We are your digital housekeepers
-                    </SubTitle>
+                    <MainTitle>Driver Login</MainTitle>
+                    <SubTitle>Welcome back!</SubTitle>
                 </ContentOverlay>
             </TopSection>
+
             <FormSection>
                 <FormContainer>
-                    <LoginTitle>
-                        <img 
-                            src="/icoon.png" 
-                            alt="BioSync Logo" 
-                            className="h-12 w-auto mx-auto"
-                        />
-                    </LoginTitle>
-                    <SubLoginText>
-                        You can login or sign up here with multiple different client options
-                    </SubLoginText>
+                    <LoginTitle>Sign in to your account</LoginTitle>
+                    <SubLoginText>Enter your credentials to continue</SubLoginText>
+
+                    <EmailForm>
+                        <InputGroup>
+                            <Label htmlFor="email">Email</Label>
+                            <Input
+                                type="email"
+                                id="email"
+                                name="email"
+                                required
+                            />
+                        </InputGroup>
+
+                        <InputGroup>
+                            <Label htmlFor="password">Password</Label>
+                            <Input
+                                type="password"
+                                id="password"
+                                name="password"
+                                required
+                            />
+                        </InputGroup>
+
+                        <LoginButton type="submit">Login</LoginButton>
+                    </EmailForm>
+
+                    <Divider>
+                        <DividerText>Or continue with</DividerText>
+                    </Divider>
+
                     <ButtonsContainer>
-                        <GoogleButton onClick={handleGoogleSignIn}>
-                            <img src="/google.svg" alt="Google" className="w-5 h-5 mr-2" />
-                            Login with Google
+                        <GoogleButton onClick={signInWithGoogle}>
+                            <img src="/google-icon.png" alt="Google" className="w-5 h-5" />
+                            Sign in with Google
                         </GoogleButton>
-                        
-                        <Divider>
-                            <DividerText>Or continue with</DividerText>
-                        </Divider>
-
-                        <EmailForm>
-                            <InputGroup>
-                                <Label htmlFor="email">Email</Label>
-                                <Input 
-                                    type="email" 
-                                    id="email" 
-                                    placeholder="Enter your email"
-                                />
-                            </InputGroup>
-
-                            <InputGroup>
-                                <Label htmlFor="password">Password</Label>
-                                <Input 
-                                    type="password" 
-                                    id="password" 
-                                    placeholder="Enter your password"
-                                />
-                            </InputGroup>
-
-                            <LoginButton type="submit">
-                                Login
-                            </LoginButton>
-                        </EmailForm>
-
-                        <SignupText>
-                            Don&apos;t have an account?{" "}
-                            <SignupLink onClick={() => router.push('/signup')}>
-                                Sign up
-                            </SignupLink>
-                        </SignupText>
                     </ButtonsContainer>
+
+                    <SignupText>
+                        Don't have an account?{' '}
+                        <SignupLink>Sign up</SignupLink>
+                    </SignupText>
                 </FormContainer>
             </FormSection>
         </MainContainer>
     );
-}
+};
 
-export default Login;
+// Make sure to export the component as default
+export default DriverLogin; 

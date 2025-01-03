@@ -138,8 +138,16 @@ const DriverLogin = () => {
         localStorage.setItem('driverPhoto', user.photoURL);
         localStorage.setItem('driverId', user.uid);
         
-        // Always redirect to DriverDetails after successful login
-        router.push('/DriverDetails');
+        // Check if driver details exist
+        const driverDetails = localStorage.getItem(user.email);
+        
+        if (driverDetails) {
+            // If user exists, redirect to DriverProfile
+            router.push('/DriverProfile');
+        } else {
+            // If new user, redirect to DriverDetails
+            router.push('/DriverDetails');
+        }
         
     } catch (error) {
         console.error('Google sign-in error:', error);
@@ -160,8 +168,16 @@ const DriverLogin = () => {
         localStorage.setItem('driverEmail', user.email);
         localStorage.setItem('driverId', user.uid);
         
-        // Always redirect to DriverDetails after successful login
-        router.push('/DriverDetails');
+        // Check if driver details exist
+        const driverDetails = localStorage.getItem(user.email);
+        
+        if (driverDetails) {
+            // If user exists, redirect to DriverProfile
+            router.push('/DriverProfile');
+        } else {
+            // If new user, redirect to DriverDetails
+            router.push('/DriverDetails');
+        }
         
     } catch (error) {
         console.error('Email login error:', error);

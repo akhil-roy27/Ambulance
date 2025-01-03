@@ -7,7 +7,9 @@ const SelectRole = () => {
 
     const handleRoleSelect = (role) => {
         localStorage.setItem('userRole', role);
-        router.push(role === 'driver' ? '/DriverLogin' : '/PatientLogin');
+        if (role === 'driver') {
+            router.push('/DriverLogin');
+        }
     };
 
     return (
