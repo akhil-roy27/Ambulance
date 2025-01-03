@@ -1,7 +1,7 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { signInWithPopup, onAuthStateChanged } from 'firebase/auth';
+import { signInWithPopup, onAuthStateChanged, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth, provider } from '../firebase';
 import tw from 'tailwind-styled-components';
 
@@ -121,6 +121,54 @@ const SignupLink = tw.button`
 `;
 
 const DriverLogin = () => {
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const signInWithGoogle = async () => {
+    try {
+        console.log('Starting Google sign-in...');
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        
+        // Store user data
+        localStorage.setItem('driverName', user.displayName);
+        localStorage.setItem('driverEmail', user.email);
+        localStorage.setItem('driverPhoto', user.photoURL);
+        localStorage.setItem('driverId', user.uid);
+        
+        // Always redirect to DriverDetails after successful login
+        router.push('/DriverDetails');
+        
+    } catch (error) {
+        console.error('Google sign-in error:', error);
+        setError('Failed to sign in with Google');
+    }
+  };
+
+  // Email/Password Sign In
+  const handleEmailLogin = async (e) => {
+    e.preventDefault();
+    try {
+        console.log('Starting email sign-in...');
+        const result = await signInWithEmailAndPassword(auth, email, password);
+        const user = result.user;
+        
+        // Store user data
+        localStorage.setItem('driverName', user.email);
+        localStorage.setItem('driverEmail', user.email);
+        localStorage.setItem('driverId', user.uid);
+        
+        // Always redirect to DriverDetails after successful login
+        router.push('/DriverDetails');
+        
+    } catch (error) {
+        console.error('Email login error:', error);
+        setError('Invalid email or password');
+    }
+  };
+
   return (
     <MainContainer>
       <TopSection>
@@ -138,14 +186,19 @@ const DriverLogin = () => {
           <LoginTitle>Sign in to your account</LoginTitle>
           <SubLoginText>Enter your credentials to continue</SubLoginText>
 
-          <EmailForm>
+          {error && <ErrorText>{error}</ErrorText>}
+
+          <EmailForm onSubmit={handleEmailLogin}>
             <InputGroup>
               <Label htmlFor="email">Email</Label>
               <Input
                 type="email"
                 id="email"
                 name="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
+                placeholder="Enter your email"
               />
             </InputGroup>
 
@@ -155,11 +208,14 @@ const DriverLogin = () => {
                 type="password"
                 id="password"
                 name="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
+                placeholder="Enter your password"
               />
             </InputGroup>
 
-            <LoginButton type="submit">Login</LoginButton>
+            <LoginButton type="submit">Login with Email</LoginButton>
           </EmailForm>
 
           <Divider>
@@ -167,8 +223,15 @@ const DriverLogin = () => {
           </Divider>
 
           <ButtonsContainer>
-            <GoogleButton>
-              <img src="/google-icon.png" alt="Google" className="w-5 h-5" />
+            <GoogleButton 
+              type="button" 
+              onClick={signInWithGoogle}
+            >
+              <img 
+                src="/google-icon.png" 
+                alt="Google" 
+                className="w-6 h-6 mr-2"
+              />
               Sign in with Google
             </GoogleButton>
           </ButtonsContainer>
