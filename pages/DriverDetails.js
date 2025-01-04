@@ -50,7 +50,7 @@ const DriverDetails = () => {
             // Save form data
             localStorage.setItem(driverEmail, JSON.stringify(driverData));
             
-            // Convert files to base64 and store
+            // Handle document uploads
             for (const [key, file] of Object.entries(documents)) {
                 if (file) {
                     const reader = new FileReader();
@@ -61,9 +61,12 @@ const DriverDetails = () => {
                 }
             }
             
-            router.push('/');
+            // After successful save, redirect to profile page
+            router.push('/DriverProfile');
+            
         } catch (error) {
             console.error('Error saving driver details:', error);
+            alert('Failed to save details. Please try again.');
         }
     };
 

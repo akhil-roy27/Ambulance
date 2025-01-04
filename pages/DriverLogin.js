@@ -139,13 +139,14 @@ const DriverLogin = () => {
         localStorage.setItem('driverId', user.uid);
         
         // Check if driver details exist
-        const driverDetails = localStorage.getItem(user.email);
+        const driverEmail = user.email;
+        const existingDetails = localStorage.getItem(driverEmail);
         
-        if (driverDetails) {
-            // If user exists, redirect to DriverProfile
+        if (existingDetails) {
+            // Existing user - go to profile
             router.push('/DriverProfile');
         } else {
-            // If new user, redirect to DriverDetails
+            // New user - go to details page
             router.push('/DriverDetails');
         }
         
@@ -159,7 +160,6 @@ const DriverLogin = () => {
   const handleEmailLogin = async (e) => {
     e.preventDefault();
     try {
-        console.log('Starting email sign-in...');
         const result = await signInWithEmailAndPassword(auth, email, password);
         const user = result.user;
         
@@ -169,13 +169,14 @@ const DriverLogin = () => {
         localStorage.setItem('driverId', user.uid);
         
         // Check if driver details exist
-        const driverDetails = localStorage.getItem(user.email);
+        const driverEmail = user.email;
+        const existingDetails = localStorage.getItem(driverEmail);
         
-        if (driverDetails) {
-            // If user exists, redirect to DriverProfile
+        if (existingDetails) {
+            // Existing user - go to profile
             router.push('/DriverProfile');
         } else {
-            // If new user, redirect to DriverDetails
+            // New user - go to details page
             router.push('/DriverDetails');
         }
         
