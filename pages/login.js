@@ -195,7 +195,7 @@ const DriverLogin = () => {
                     </ButtonsContainer>
 
                     <SignupText>
-                        Don't have an account?{' '}
+                        Don&apos;t have an account?{' '}
                         <SignupLink>Sign up</SignupLink>
                     </SignupText>
                 </FormContainer>
