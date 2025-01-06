@@ -120,6 +120,13 @@ const SignupLink = tw.button`
     hover:underline font-medium
 `;
 
+const ErrorText = tw.div`
+    text-red-500 text-sm text-center
+    bg-red-50 
+    p-3 mb-4 rounded-lg
+    border border-red-200
+`;
+
 const DriverLogin = () => {
   const router = useRouter();
   const [email, setEmail] = useState('');
