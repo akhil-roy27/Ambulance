@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import tw from 'tailwind-styled-components'
 import { carList } from '../../data/carList';
 
-function RideSelector({pickupCoordinates, dropoffCoordinates}) {
+function RideSelector({pickupCoordinates, dropoffCoordinates, setSelectedType}) {
     const [rideDuration, setRideDuration] = useState(0);
     const [rideDistance, setRideDistance] = useState(0);
+    const [selectedCar, setSelectedCar] = useState('');
 
     useEffect(() => {
         // Check if coordinates are available
@@ -27,11 +28,16 @@ function RideSelector({pickupCoordinates, dropoffCoordinates}) {
         }
     }, [pickupCoordinates, dropoffCoordinates]);
 
+    const handleCarSelect = (car) => {
+        // Store the selected car type and pass it up to parent
+        setSelectedCar(car.service);
+        setSelectedType(car.service); // This will update the text in confirm.js
+    };
+
     return (
         <Wrapper>
             <Title>Choose a ride, or swipe up for more</Title>
             
-            {/* Trip Info */}
             <TripInfo>
                 <TripDetail>
                     <Label>Distance:</Label>
@@ -45,7 +51,11 @@ function RideSelector({pickupCoordinates, dropoffCoordinates}) {
 
             <CarList>
                 {carList.map((car, index) => (
-                    <Car key={index}>
+                    <Car 
+                        key={index}
+                        onClick={() => handleCarSelect(car)}
+                        className={selectedCar === car.service ? 'selected' : ''}
+                    >
                         <CarImage src={car.imgUrl} />
                         <CarDetails>
                             <Service>{car.service}</Service>
@@ -93,8 +103,10 @@ const CarList = tw.div`
 `
 
 const Car = tw.div`
-    flex p-4 items-center border-b border-gray-100 hover:bg-gray-50 cursor-pointer
+    flex p-4 items-center border-b border-gray-100 
+    hover:bg-gray-50 cursor-pointer
     transition duration-200
+    ${(p) => p.className === 'selected' ? 'bg-blue-50 border-blue-200' : ''}
 `
 
 const CarImage = tw.img`

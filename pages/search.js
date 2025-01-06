@@ -25,9 +25,19 @@ function Search() {
                 timestamp: new Date().toISOString()
             };
 
-            const updatedSearches = [newSearch, ...recentSearches.slice(0, 4)];
-            setRecentSearches(updatedSearches);
-            localStorage.setItem('recentSearches', JSON.stringify(updatedSearches));
+            // Check if this search already exists
+            const searchExists = recentSearches.some(
+                search => 
+                    search.pickup.toLowerCase() === pickup.toLowerCase() && 
+                    search.dropoff.toLowerCase() === dropoff.toLowerCase()
+            );
+
+            if (!searchExists) {
+                // Only add if it's a new unique search
+                const updatedSearches = [newSearch, ...recentSearches.slice(0, 4)];
+                setRecentSearches(updatedSearches);
+                localStorage.setItem('recentSearches', JSON.stringify(updatedSearches));
+            }
         }
     };
 
@@ -42,6 +52,16 @@ function Search() {
 
     const handleDropoffSelect = (suggestion) => {
         setDropoffCoordinates(suggestion.center);
+    };
+
+    const handleDeleteSearch = (searchToDelete) => {
+        const updatedSearches = recentSearches.filter(
+            search => 
+                search.pickup !== searchToDelete.pickup || 
+                search.dropoff !== searchToDelete.dropoff
+        );
+        setRecentSearches(updatedSearches);
+        localStorage.setItem('recentSearches', JSON.stringify(updatedSearches));
     };
 
     return (
@@ -107,17 +127,29 @@ function Search() {
                     <RecentSearchesTitle>Recent Searches</RecentSearchesTitle>
                     {recentSearches.map((search, index) => (
                         <RecentSearchItem 
-                            key={index} 
-                            onClick={() => handleRecentSearchClick(search)}
+                            key={`${search.pickup}-${search.dropoff}-${index}`}
                         >
-                            <RecentSearchIcon src='https://img.icons8.com/ios/50/000000/clock--v1.png' />
-                            <RecentSearchDetails>
-                                <FromTo>From: {search.pickup}</FromTo>
-                                <FromTo>To: {search.dropoff}</FromTo>
-                                <SearchTime>
-                                    {new Date(search.timestamp).toLocaleDateString()}
-                                </SearchTime>
-                            </RecentSearchDetails>
+                            <div 
+                                className="flex-1 flex items-center" 
+                                onClick={() => handleRecentSearchClick(search)}
+                            >
+                                <RecentSearchIcon src='https://img.icons8.com/ios/50/000000/clock--v1.png' />
+                                <RecentSearchDetails>
+                                    <FromTo>From: {search.pickup}</FromTo>
+                                    <FromTo>To: {search.dropoff}</FromTo>
+                                    <SearchTime>
+                                        {new Date(search.timestamp).toLocaleDateString()}
+                                    </SearchTime>
+                                </RecentSearchDetails>
+                            </div>
+                            <DeleteButton 
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteSearch(search);
+                                }}
+                            >
+                                ×
+                            </DeleteButton>
                         </RecentSearchItem>
                     ))}
                 </RecentSearchesContainer>
@@ -206,8 +238,10 @@ const RecentSearchesTitle = tw.h3`
 `;
 
 const RecentSearchItem = tw.div`
-    flex items-center p-3 border-b border-gray-100 
-    hover:bg-gray-50 cursor-pointer transition duration-200
+    flex items-center justify-between
+    p-3 border-b border-gray-100 
+    hover:bg-gray-50 cursor-pointer 
+    transition duration-200
     last:border-b-0
 `;
 
@@ -225,4 +259,14 @@ const FromTo = tw.div`
 
 const SearchTime = tw.div`
     text-xs text-gray-400 mt-1
+`;
+
+const DeleteButton = tw.button`
+    text-gray-400 hover:text-red-500
+    text-xl font-bold
+    w-8 h-8
+    flex items-center justify-center
+    rounded-full
+    transition duration-200
+    focus:outline-none
 `;

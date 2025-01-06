@@ -11,6 +11,7 @@ function Confirm() {
 
     const [pickupCoordinates, setPickupCoordinates] = useState([0, 0]);
     const [dropoffCoordinates, setDropoffCoordinates] = useState([0, 0]);
+    const [selectedType, setSelectedType] = useState('');
 
     const getPickupCoordinates = (pickup) => {
         fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${pickup}.json?` + 
@@ -58,11 +59,12 @@ function Confirm() {
                 <RideSelector
                     pickupCoordinates={pickupCoordinates}
                     dropoffCoordinates={dropoffCoordinates}
+                    setSelectedType={setSelectedType}
                 />
 
                 <ConfirmButtonContainer>
                     <ConfirmButton>
-                        Confirm UberX
+                        Confirm {selectedType}
                     </ConfirmButton>
                 </ConfirmButtonContainer>
 
