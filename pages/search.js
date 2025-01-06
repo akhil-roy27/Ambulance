@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import tw from 'tailwind-styled-components'
 import Link from 'next/link';
 import AutocompleteInput from './components/AutocompleteInput';
@@ -8,6 +8,33 @@ function Search() {
     const [dropoff, setDropoff] = useState('');
     const [pickupCoordinates, setPickupCoordinates] = useState(null);
     const [dropoffCoordinates, setDropoffCoordinates] = useState(null);
+    const [recentSearches, setRecentSearches] = useState([]);
+
+    useEffect(() => {
+        const savedSearches = localStorage.getItem('recentSearches');
+        if (savedSearches) {
+            setRecentSearches(JSON.parse(savedSearches));
+        }
+    }, []);
+
+    const saveSearch = () => {
+        if (pickup && dropoff) {
+            const newSearch = {
+                pickup,
+                dropoff,
+                timestamp: new Date().toISOString()
+            };
+
+            const updatedSearches = [newSearch, ...recentSearches.slice(0, 4)];
+            setRecentSearches(updatedSearches);
+            localStorage.setItem('recentSearches', JSON.stringify(updatedSearches));
+        }
+    };
+
+    const handleRecentSearchClick = (search) => {
+        setPickup(search.pickup);
+        setDropoff(search.dropoff);
+    };
 
     const handlePickupSelect = (suggestion) => {
         setPickupCoordinates(suggestion.center);
@@ -18,7 +45,7 @@ function Search() {
     };
 
     return (
-        <Wrapper>
+        <Wrapper style={{}}>
             {/* Header */}
             <HeaderContainer>
                 <Link href='/' >
@@ -69,10 +96,32 @@ function Search() {
                     dropoffCoordinates: JSON.stringify(dropoffCoordinates),
                 }
             }}>
-                <ConfirmButtonContainer>
+                <ConfirmButtonContainer onClick={saveSearch}>
                     Confirm Locations
                 </ConfirmButtonContainer>
             </Link>
+
+            {/* Recent Searches Section */}
+            {recentSearches.length > 0 && (
+                <RecentSearchesContainer>
+                    <RecentSearchesTitle>Recent Searches</RecentSearchesTitle>
+                    {recentSearches.map((search, index) => (
+                        <RecentSearchItem 
+                            key={index} 
+                            onClick={() => handleRecentSearchClick(search)}
+                        >
+                            <RecentSearchIcon src='https://img.icons8.com/ios/50/000000/clock--v1.png' />
+                            <RecentSearchDetails>
+                                <FromTo>From: {search.pickup}</FromTo>
+                                <FromTo>To: {search.dropoff}</FromTo>
+                                <SearchTime>
+                                    {new Date(search.timestamp).toLocaleDateString()}
+                                </SearchTime>
+                            </RecentSearchDetails>
+                        </RecentSearchItem>
+                    ))}
+                </RecentSearchesContainer>
+            )}
         </Wrapper>
     )
 };
@@ -147,3 +196,33 @@ const ConfirmButtonContainer = tw.div`
     rounded-lg cursor-pointer hover:bg-gray-900 transition duration-200
     shadow-md
 `
+
+const RecentSearchesContainer = tw.div`
+    bg-white mx-4 mt-4 p-4 rounded-lg shadow-sm
+`;
+
+const RecentSearchesTitle = tw.h3`
+    text-lg font-semibold mb-3 text-gray-700
+`;
+
+const RecentSearchItem = tw.div`
+    flex items-center p-3 border-b border-gray-100 
+    hover:bg-gray-50 cursor-pointer transition duration-200
+    last:border-b-0
+`;
+
+const RecentSearchIcon = tw.img`
+    w-8 h-8 mr-3 opacity-50
+`;
+
+const RecentSearchDetails = tw.div`
+    flex-1
+`;
+
+const FromTo = tw.div`
+    text-sm text-gray-600
+`;
+
+const SearchTime = tw.div`
+    text-xs text-gray-400 mt-1
+`;
