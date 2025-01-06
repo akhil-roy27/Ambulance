@@ -173,7 +173,7 @@ const DriverProfile = () => {
                         </InfoGrid>
                     </InfoSection>
 
-                    <Button onClick={() => router.push('/')}>
+                    <Button>
                         Back to Home
                     </Button>
                 </ProfileContainer>
