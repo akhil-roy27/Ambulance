@@ -10,6 +10,9 @@ const SelectRole = () => {
         if (role === 'driver') {
             router.push('/DriverLogin');
         }
+        else {
+            router.push('/PatientLogin');
+        }
     };
 
     return (
